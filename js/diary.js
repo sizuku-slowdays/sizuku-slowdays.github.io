@@ -165,7 +165,116 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, "&#039;");
     }
 
+    // --- Data Persistence Functions ---
+
+    async function exportEntries() {
+        if (entries.length === 0) {
+            alert('保存する日記がありません。');
+            return;
+        }
+
+        const dataStr = JSON.stringify(entries, null, 2);
+
+        // Generate filename with date
+        const date = new Date();
+        const dateStr = date.toISOString().split('T')[0];
+        const filename = `diary_backup_${dateStr}.json`;
+
+        try {
+            // Try to use the modern "Save As" dialog
+            if (window.showSaveFilePicker) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: 'JSON Files',
+                        accept: { 'application/json': ['.json'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(dataStr);
+                await writable.close();
+                showToast('日記データを保存しました');
+            } else {
+                // Fallback for browsers that don't support the API
+                throw new Error('Fallback to download');
+            }
+        } catch (err) {
+            // Fallback method (Classic download link)
+            if (err.message !== 'The user aborted a request.') { // Ignore incorrect abort errors or handle fallback
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('日記データを書き出しました (ダウンロード)');
+            }
+        }
+    }
+
+    function importEntries(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+
+                // Simple validation: check if array
+                if (!Array.isArray(importedData)) {
+                    throw new Error('Invalid data format');
+                }
+
+                if (confirm('現在の日記データに追加しますか？\n（同じIDの日記は上書きされます）')) {
+                    // Merge logic: Create a map of existing entries by ID
+                    const entryMap = new Map(entries.map(e => [e.id, e]));
+
+                    // Add/Update imported entries
+                    importedData.forEach(entry => {
+                        if (entry.id && entry.date && (entry.title || entry.content)) {
+                            entryMap.set(entry.id, entry);
+                        }
+                    });
+
+                    // Convert back to array
+                    entries = Array.from(entryMap.values());
+                    saveEntries();
+                    renderEntries();
+                    showToast('日記を復元しました');
+                }
+            } catch (err) {
+                alert('ファイルの読み込みに失敗しました。正しいJSONファイルか確認してください。');
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    }
+
     // --- Event Listeners ---
+
+    // Backup/Restore
+    const backupBtn = document.getElementById('backup-btn');
+    const restoreBtn = document.getElementById('restore-btn');
+    const restoreInput = document.getElementById('restore-input');
+
+    if (backupBtn) {
+        backupBtn.addEventListener('click', exportEntries);
+    }
+
+    if (restoreBtn) {
+        restoreBtn.addEventListener('click', () => restoreInput.click());
+    }
+
+    if (restoreInput) {
+        restoreInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                importEntries(e.target.files[0]);
+                // Reset input so same file can be selected again if needed
+                e.target.value = '';
+            }
+        });
+    }
 
     newEntryBtn.addEventListener('click', showEditor);
     cancelBtn.addEventListener('click', showList);

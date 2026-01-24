@@ -324,3 +324,55 @@ footer {
     transform: translateX(-50%) translateY(20px);
     pointer-events: none;
 }
+
+/* Data Management */
+.data-management {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.data-management summary {
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    list-style: none;
+    /* Hide default triangle in some browsers */
+}
+
+.data-management summary::-webkit-details-marker {
+    display: none;
+}
+
+.data-controls {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-top: 0.5rem;
+}
+
+.data-desc {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+}
+
+.data-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn-outline:hover {
+    background: var(--primary-color);
+    color: white;
+}

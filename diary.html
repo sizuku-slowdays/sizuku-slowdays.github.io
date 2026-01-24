@@ -39,6 +39,27 @@
                         <p>まだ日記がありません。<br>「書く」ボタンから、今日の日記をつけてみましょう！</p>
                     </div>
                 </div>
+
+                <!-- Data Management Section -->
+                <div class="data-management">
+                    <details>
+                        <summary>データの保存・復元</summary>
+                        <div class="data-controls">
+                            <p class="data-desc">日記データをファイルとして保存したり、読み込んだりできます。</p>
+                            <div class="data-buttons">
+                                <button id="backup-btn" class="btn btn-outline">
+                                    <i class="fa-solid fa-download"></i> 日記を保存 (書き出し)
+                                </button>
+                                <div class="restore-group">
+                                    <input type="file" id="restore-input" accept=".json" style="display: none;">
+                                    <button id="restore-btn" class="btn btn-outline">
+                                        <i class="fa-solid fa-upload"></i> 日記を復元 (読み込み)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
             </section>
 
             <!-- EDITOR VIEW: Form to create a new entry -->
