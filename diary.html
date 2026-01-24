@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shizuku's Diary</title>
+    <!-- Google Fonts: Zen Maru Gothic for a soft, friendly feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="css/diary.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo">
+                <i class="fa-solid fa-book-open"></i>
+                <h1><a href="index.html" style="text-decoration:none; color:inherit;">Shizuku's Diary</a></h1>
+            </div>
+            <button id="new-entry-btn" class="btn btn-primary">
+                <i class="fa-solid fa-pen"></i> 書く
+            </button>
+        </header>
+
+        <main id="main-content">
+            <!-- LIST VIEW: Shows all diary entries -->
+            <section id="view-list" class="view active">
+                <div id="entries-container" class="entries-grid">
+                    <!-- Entries will be loaded here by JavaScript -->
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile"></i>
+                        <p>まだ日記がありません。<br>「書く」ボタンから、今日の日記をつけてみましょう！</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EDITOR VIEW: Form to create a new entry -->
+            <section id="view-editor" class="view hidden">
+                <div class="editor-container">
+                    <div class="editor-toolbar">
+                        <button id="cancel-btn" class="btn btn-text">
+                            <i class="fa-solid fa-arrow-left"></i> 戻る
+                        </button>
+                        <h2>新しい日記</h2>
+                    </div>
+
+                    <form id="diary-form">
+                        <div class="form-group">
+                            <label for="entry-date">日付</label>
+                            <input type="date" id="entry-date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="entry-title">タイトル</label>
+                            <input type="text" id="entry-title" placeholder="今日のタイトル..." required autocomplete="off">
+                        </div>
+
+                        <div class="form-group flex-grow">
+                            <label for="entry-content">本文</label>
+                            <textarea id="entry-content" placeholder="今日はどんな一日でしたか？" required></textarea>
+                        </div>
+
+                        <div class="editor-actions">
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fa-solid fa-check"></i> 保存する
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Shizuku's Diary</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">保存しました</div>
+
+    <script src="js/diary.js"></script>
+</body>
+
+</html>
