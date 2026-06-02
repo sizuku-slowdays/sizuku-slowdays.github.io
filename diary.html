@@ -468,11 +468,20 @@
       body.className = "entry-body";
       body.textContent = entry.body;
 
-      article.appendChild(title);
-      article.appendChild(date);
-      article.appendChild(body);
+article.appendChild(title);
+article.appendChild(date);
+article.appendChild(body);
 
-      entriesEl.appendChild(article);
+const deleteBtn = document.createElement("button");
+deleteBtn.className = "reload-btn";
+deleteBtn.type = "button";
+deleteBtn.textContent = "削除";
+deleteBtn.style.marginTop = "12px";
+deleteBtn.addEventListener("click", () => deleteDiary(entry.id));
+
+article.appendChild(deleteBtn);
+
+entriesEl.appendChild(article);
     }
   }
 
