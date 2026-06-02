@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -24,20 +25,13 @@
       --shadow: rgba(120, 70, 90, 0.12);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Hiragino Sans",
-        "Hiragino Kaku Gothic ProN",
-        "Yu Gothic",
-        sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+        "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, #ffeef5 0, transparent 35%),
@@ -84,9 +78,7 @@
       backdrop-filter: blur(8px);
     }
 
-    .form-card {
-      margin-bottom: 22px;
-    }
+    .form-card { margin-bottom: 22px; }
 
     label {
       display: block;
@@ -96,8 +88,7 @@
       font-size: 14px;
     }
 
-    input,
-    textarea {
+    input, textarea {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 16px;
@@ -106,11 +97,9 @@
       color: var(--text);
       background: #fff;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    input:focus,
-    textarea:focus {
+    input:focus, textarea:focus {
       border-color: var(--main);
       box-shadow: 0 0 0 4px rgba(217, 108, 147, 0.14);
     }
@@ -121,9 +110,7 @@
       line-height: 1.7;
     }
 
-    .field {
-      margin-bottom: 16px;
-    }
+    .field { margin-bottom: 16px; }
 
     .buttons {
       display: flex;
@@ -139,21 +126,14 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: transform 0.08s, opacity 0.2s, background 0.2s;
     }
 
-    button:active {
-      transform: scale(0.98);
-    }
+    button:active { transform: scale(0.98); }
 
     .save-btn {
       background: var(--main);
       color: #fff;
       box-shadow: 0 8px 18px rgba(217, 108, 147, 0.28);
-    }
-
-    .save-btn:hover {
-      background: var(--main-dark);
     }
 
     .reload-btn {
@@ -173,13 +153,8 @@
       font-size: 14px;
     }
 
-    .status.ok {
-      color: #3f8a5a;
-    }
-
-    .status.error {
-      color: #c04444;
-    }
+    .status.ok { color: #3f8a5a; }
+    .status.error { color: #c04444; }
 
     .section-title {
       display: flex;
@@ -253,25 +228,11 @@
     }
 
     @media (max-width: 560px) {
-      .page {
-        padding: 18px 12px 44px;
-      }
-
-      h1 {
-        font-size: 26px;
-      }
-
-      .card {
-        padding: 15px;
-      }
-
-      button {
-        width: 100%;
-      }
-
-      .buttons {
-        gap: 8px;
-      }
+      .page { padding: 18px 12px 44px; }
+      h1 { font-size: 26px; }
+      .card { padding: 15px; }
+      button { width: 100%; }
+      .buttons { gap: 8px; }
     }
   </style>
 </head>
@@ -286,6 +247,16 @@
 
     <main>
       <section class="card form-card">
+        <div class="field">
+          <label for="password">パスワード</label>
+          <input
+            id="password"
+            type="password"
+            placeholder="パスワードを入力"
+            autocomplete="current-password"
+          />
+        </div>
+
         <div class="field">
           <label for="title">タイトル</label>
           <input
@@ -307,12 +278,8 @@
         </div>
 
         <div class="buttons">
-          <button id="saveBtn" class="save-btn" type="button">
-            保存する
-          </button>
-          <button id="reloadBtn" class="reload-btn" type="button">
-            一覧を更新
-          </button>
+          <button id="saveBtn" class="save-btn" type="button">保存する</button>
+          <button id="reloadBtn" class="reload-btn" type="button">一覧を読む</button>
         </div>
 
         <div id="status" class="status"></div>
@@ -324,11 +291,11 @@
       </div>
 
       <section id="entries" class="entries">
-        <div class="empty">読み込み中です。</div>
+        <div class="empty">パスワードを入力して「一覧を読む」を押してね。</div>
       </section>
 
       <p class="small-note">
-        ※ このページにはAPIキーや秘密情報は入れていません。<br />
+        ※ パスワードはこのHTMLには保存していません。<br />
         保存先は Cloudflare D1 です。
       </p>
     </main>
@@ -337,6 +304,7 @@
   <script>
     const API_BASE = "https://api.cetus.fun";
 
+    const passwordInput = document.getElementById("password");
     const titleInput = document.getElementById("title");
     const bodyInput = document.getElementById("body");
     const saveBtn = document.getElementById("saveBtn");
@@ -348,9 +316,22 @@
     saveBtn.addEventListener("click", saveDiary);
     reloadBtn.addEventListener("click", loadDiary);
 
-    document.addEventListener("DOMContentLoaded", loadDiary);
+    function getPassword() {
+      return passwordInput.value.trim();
+    }
+
+    function checkPassword() {
+      if (!getPassword()) {
+        showStatus("パスワードを入力してね。", "error");
+        passwordInput.focus();
+        return false;
+      }
+      return true;
+    }
 
     async function saveDiary() {
+      if (!checkPassword()) return;
+
       const title = titleInput.value.trim();
       const body = bodyInput.value.trim();
 
@@ -375,8 +356,9 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-App-Password": getPassword()
           },
-          body: JSON.stringify({ title, body }),
+          body: JSON.stringify({ title, body })
         });
 
         const data = await response.json();
@@ -399,10 +381,18 @@
     }
 
     async function loadDiary() {
+      if (!checkPassword()) return;
+
       reloadBtn.disabled = true;
+      showStatus("読み込んでいます…", "");
 
       try {
-        const response = await fetch(`${API_BASE}/api/diary`);
+        const response = await fetch(`${API_BASE}/api/diary`, {
+          headers: {
+            "X-App-Password": getPassword()
+          }
+        });
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -410,6 +400,7 @@
         }
 
         renderEntries(data.entries || []);
+        showStatus("読み込みました。", "ok");
       } catch (error) {
         entriesEl.innerHTML = "";
         const empty = document.createElement("div");
@@ -417,6 +408,7 @@
         empty.textContent = `日記を読み込めませんでした：${error.message}`;
         entriesEl.appendChild(empty);
         countEl.textContent = "";
+        showStatus(`読み込みできませんでした：${error.message}`, "error");
       } finally {
         reloadBtn.disabled = false;
       }
@@ -424,7 +416,6 @@
 
     function renderEntries(entries) {
       entriesEl.innerHTML = "";
-
       countEl.textContent = `${entries.length}件`;
 
       if (entries.length === 0) {
@@ -462,8 +453,6 @@
     function formatDate(value) {
       if (!value) return "";
 
-      // D1のCURRENT_TIMESTAMPはUTC文字列になることが多いので、
-      // 末尾にZを補って日本時間表示にする
       const normalized = value.includes("T")
         ? value
         : value.replace(" ", "T") + "Z";
@@ -480,7 +469,7 @@
         month: "2-digit",
         day: "2-digit",
         hour: "2-digit",
-        minute: "2-digit",
+        minute: "2-digit"
       }).format(date);
     }
 
@@ -495,3 +484,4 @@
   </script>
 </body>
 </html>
+```
