@@ -319,7 +319,38 @@
 
   saveBtn.addEventListener("click", saveDiary);
   reloadBtn.addEventListener("click", loadDiary);
+  
+async function deleteDiary(id) {
+  if (!checkPassword()) return;
 
+  if (!confirm("この日記を削除しますか？")) {
+    return;
+  }
+
+  showStatus("削除しています…", "");
+
+  try {
+    const response = await fetch(`${API_BASE}/api/diary`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "X-App-Password": getPassword()
+      },
+      body: JSON.stringify({ id })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "削除に失敗しました。");
+    }
+
+    showStatus("削除しました。", "ok");
+    await loadDiary();
+  } catch (error) {
+    showStatus(`削除できませんでした：${error.message}`, "error");
+  }
+}
   document.addEventListener("DOMContentLoaded", () => {
     const savedPassword = localStorage.getItem("hane_password");
 
