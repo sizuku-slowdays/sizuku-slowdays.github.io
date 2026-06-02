@@ -305,188 +305,210 @@
       </p>
     </main>
   </div>
+<script>
+  const API_BASE = "https://api.cetus.fun";
 
-  <script>
-    const API_BASE = "https://api.cetus.fun";
+  const passwordInput = document.getElementById("password");
+  const titleInput = document.getElementById("title");
+  const bodyInput = document.getElementById("body");
+  const saveBtn = document.getElementById("saveBtn");
+  const reloadBtn = document.getElementById("reloadBtn");
+  const savePasswordBtn = document.getElementById("savePasswordBtn");
+  const statusEl = document.getElementById("status");
+  const entriesEl = document.getElementById("entries");
+  const countEl = document.getElementById("count");
 
-    const passwordInput = document.getElementById("password");
-    const titleInput = document.getElementById("title");
-    const bodyInput = document.getElementById("body");
-    const saveBtn = document.getElementById("saveBtn");
-    const reloadBtn = document.getElementById("reloadBtn");
-    const statusEl = document.getElementById("status");
-    const entriesEl = document.getElementById("entries");
-    const countEl = document.getElementById("count");
+  saveBtn.addEventListener("click", saveDiary);
+  reloadBtn.addEventListener("click", loadDiary);
 
-    saveBtn.addEventListener("click", saveDiary);
-    reloadBtn.addEventListener("click", loadDiary);
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedPassword = localStorage.getItem("hane_password");
 
-    function getPassword() {
-      return passwordInput.value.trim();
+    if (savedPassword) {
+      passwordInput.value = savedPassword;
+      showStatus("保存済みパスワードを読み込みました。", "ok");
+    }
+  });
+
+  savePasswordBtn.addEventListener("click", () => {
+    const password = getPassword();
+
+    if (!password) {
+      showStatus("保存するパスワードを入力してね。", "error");
+      passwordInput.focus();
+      return;
     }
 
-    function checkPassword() {
-      if (!getPassword()) {
-        showStatus("パスワードを入力してね。", "error");
-        passwordInput.focus();
-        return false;
-      }
-      return true;
+    localStorage.setItem("hane_password", password);
+    showStatus("この端末にパスワードを保存しました。", "ok");
+  });
+
+  function getPassword() {
+    return passwordInput.value.trim();
+  }
+
+  function checkPassword() {
+    if (!getPassword()) {
+      showStatus("パスワードを入力してね。", "error");
+      passwordInput.focus();
+      return false;
+    }
+    return true;
+  }
+
+  async function saveDiary() {
+    if (!checkPassword()) return;
+
+    const title = titleInput.value.trim();
+    const body = bodyInput.value.trim();
+
+    if (!title) {
+      showStatus("タイトルを入力してね。", "error");
+      titleInput.focus();
+      return;
     }
 
-    async function saveDiary() {
-      if (!checkPassword()) return;
+    if (!body) {
+      showStatus("本文を入力してね。", "error");
+      bodyInput.focus();
+      return;
+    }
 
-      const title = titleInput.value.trim();
-      const body = bodyInput.value.trim();
+    saveBtn.disabled = true;
+    reloadBtn.disabled = true;
+    showStatus("保存しています…", "");
 
-      if (!title) {
-        showStatus("タイトルを入力してね。", "error");
-        titleInput.focus();
-        return;
+    try {
+      const response = await fetch(`${API_BASE}/api/diary`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-App-Password": getPassword()
+        },
+        body: JSON.stringify({ title, body })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "保存に失敗しました。");
       }
 
-      if (!body) {
-        showStatus("本文を入力してね。", "error");
-        bodyInput.focus();
-        return;
-      }
+      titleInput.value = "";
+      bodyInput.value = "";
 
-      saveBtn.disabled = true;
-      reloadBtn.disabled = true;
-      showStatus("保存しています…", "");
+      showStatus("保存しました。", "ok");
+      await loadDiary();
+    } catch (error) {
+      showStatus(`保存できませんでした：${error.message}`, "error");
+    } finally {
+      saveBtn.disabled = false;
+      reloadBtn.disabled = false;
+    }
+  }
 
-      try {
-        const response = await fetch(`${API_BASE}/api/diary`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-App-Password": getPassword()
-          },
-          body: JSON.stringify({ title, body })
-        });
+  async function loadDiary() {
+    if (!checkPassword()) return;
 
-        const data = await response.json();
+    reloadBtn.disabled = true;
+    showStatus("読み込んでいます…", "");
 
-        if (!response.ok) {
-          throw new Error(data.error || "保存に失敗しました。");
+    try {
+      const response = await fetch(`${API_BASE}/api/diary`, {
+        headers: {
+          "X-App-Password": getPassword()
         }
+      });
 
-        titleInput.value = "";
-        bodyInput.value = "";
+      const data = await response.json();
 
-        showStatus("保存しました。", "ok");
-        await loadDiary();
-      } catch (error) {
-        showStatus(`保存できませんでした：${error.message}`, "error");
-      } finally {
-        saveBtn.disabled = false;
-        reloadBtn.disabled = false;
+      if (!response.ok) {
+        throw new Error(data.error || "読み込みに失敗しました。");
       }
-    }
 
-    async function loadDiary() {
-      if (!checkPassword()) return;
-
-      reloadBtn.disabled = true;
-      showStatus("読み込んでいます…", "");
-
-      try {
-        const response = await fetch(`${API_BASE}/api/diary`, {
-          headers: {
-            "X-App-Password": getPassword()
-          }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "読み込みに失敗しました。");
-        }
-
-        renderEntries(data.entries || []);
-        showStatus("読み込みました。", "ok");
-      } catch (error) {
-        entriesEl.innerHTML = "";
-        const empty = document.createElement("div");
-        empty.className = "empty";
-        empty.textContent = `日記を読み込めませんでした：${error.message}`;
-        entriesEl.appendChild(empty);
-        countEl.textContent = "";
-        showStatus(`読み込みできませんでした：${error.message}`, "error");
-      } finally {
-        reloadBtn.disabled = false;
-      }
-    }
-
-    function renderEntries(entries) {
+      renderEntries(data.entries || []);
+      showStatus("読み込みました。", "ok");
+    } catch (error) {
       entriesEl.innerHTML = "";
-      countEl.textContent = `${entries.length}件`;
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = `日記を読み込めませんでした：${error.message}`;
+      entriesEl.appendChild(empty);
+      countEl.textContent = "";
+      showStatus(`読み込みできませんでした：${error.message}`, "error");
+    } finally {
+      reloadBtn.disabled = false;
+    }
+  }
 
-      if (entries.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "empty";
-        empty.textContent = "まだ日記がありません。最初の一枚を書いてみよう。";
-        entriesEl.appendChild(empty);
-        return;
-      }
+  function renderEntries(entries) {
+    entriesEl.innerHTML = "";
+    countEl.textContent = `${entries.length}件`;
 
-      for (const entry of entries) {
-        const article = document.createElement("article");
-        article.className = "entry";
-
-        const title = document.createElement("h3");
-        title.className = "entry-title";
-        title.textContent = entry.title;
-
-        const date = document.createElement("div");
-        date.className = "entry-date";
-        date.textContent = formatDate(entry.created_at);
-
-        const body = document.createElement("p");
-        body.className = "entry-body";
-        body.textContent = entry.body;
-
-        article.appendChild(title);
-        article.appendChild(date);
-        article.appendChild(body);
-
-        entriesEl.appendChild(article);
-      }
+    if (entries.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "まだ日記がありません。最初の一枚を書いてみよう。";
+      entriesEl.appendChild(empty);
+      return;
     }
 
-    function formatDate(value) {
-      if (!value) return "";
+    for (const entry of entries) {
+      const article = document.createElement("article");
+      article.className = "entry";
 
-      const normalized = value.includes("T")
-        ? value
-        : value.replace(" ", "T") + "Z";
+      const title = document.createElement("h3");
+      title.className = "entry-title";
+      title.textContent = entry.title;
 
-      const date = new Date(normalized);
+      const date = document.createElement("div");
+      date.className = "entry-date";
+      date.textContent = formatDate(entry.created_at);
 
-      if (Number.isNaN(date.getTime())) {
-        return value;
-      }
+      const body = document.createElement("p");
+      body.className = "entry-body";
+      body.textContent = entry.body;
 
-      return new Intl.DateTimeFormat("ja-JP", {
-        timeZone: "Asia/Tokyo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(date);
+      article.appendChild(title);
+      article.appendChild(date);
+      article.appendChild(body);
+
+      entriesEl.appendChild(article);
+    }
+  }
+
+  function formatDate(value) {
+    if (!value) return "";
+
+    const normalized = value.includes("T")
+      ? value
+      : value.replace(" ", "T") + "Z";
+
+    const date = new Date(normalized);
+
+    if (Number.isNaN(date.getTime())) {
+      return value;
     }
 
-    function showStatus(message, type) {
-      statusEl.textContent = message;
-      statusEl.className = "status";
+    return new Intl.DateTimeFormat("ja-JP", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }).format(date);
+  }
 
-      if (type) {
-        statusEl.classList.add(type);
-      }
+  function showStatus(message, type) {
+    statusEl.textContent = message;
+    statusEl.className = "status";
+
+    if (type) {
+      statusEl.classList.add(type);
     }
-  </script>
+  }
+</script>
 </body>
 </html>
 ```
